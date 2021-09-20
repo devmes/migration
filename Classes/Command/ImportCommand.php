@@ -8,6 +8,7 @@ use In2code\Migration\Utility\DatabaseUtility;
 use In2code\Migration\Utility\ObjectUtility;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -36,6 +37,12 @@ class ImportCommand extends AbstractPortCommand
             'Path to configuration file',
             self::CONFIGURATION_PATH
         );
+        $this->addOption(
+            'update-records',
+            null,
+            InputOption::VALUE_NONE,
+            'If set, existing records with the same UID will be updated instead of inserted.'
+        );
     }
 
     /**
@@ -56,7 +63,8 @@ class ImportCommand extends AbstractPortCommand
             Import::class,
             $input->getArgument('file'),
             (int)$input->getArgument('pid'),
-            $this->getCompleteConfiguration($input->getArgument('configuration'))
+            $this->getCompleteConfiguration($input->getArgument('configuration')),
+            $input->getOption('update-records')
         );
         try {
             $this->checkTarget((int)$input->getArgument('pid'));

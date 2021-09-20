@@ -11,6 +11,7 @@ use In2code\Migration\Signal\SignalTrait;
 use In2code\Migration\Utility\DatabaseUtility;
 use In2code\Migration\Utility\FileUtility;
 use In2code\Migration\Utility\ObjectUtility;
+use In2code\Migration\Utility\RecordUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\SignalSlot\Exception\InvalidSlotException;
 use TYPO3\CMS\Extbase\SignalSlot\Exception\InvalidSlotReturnException;
@@ -113,6 +114,11 @@ class Import
     protected $mappingService = null;
 
     /**
+     * @var bool
+     */
+    protected $updateRecords = false;
+
+    /**
      * ImportService constructor.
      * @param string $file
      * @param int $pid
@@ -122,12 +128,13 @@ class Import
      * @throws InvalidSlotException
      * @throws InvalidSlotReturnException
      */
-    public function __construct(string $file, int $pid, array $configuration = [])
+    public function __construct(string $file, int $pid, array $configuration = [], $updateRecords = false)
     {
         $this->mappingService = ObjectUtility::getObjectManager()->get(MappingService::class, $configuration);
         $this->file = $file;
         $this->pid = $pid;
         $this->configuration = $configuration;
+        $this->updateRecords = $updateRecords;
         $this->checkFile();
         $this->setJson();
         $this->signalDispatch(__CLASS__, 'beforeImport', [$this]);
@@ -373,8 +380,17 @@ class Import
         $oldIdentifier = (int)$properties['uid'];
         $connection = DatabaseUtility::getConnectionForTable($tableName);
         $properties = $this->prepareProperties($properties, $tableName);
-        $connection->insert($tableName, $properties);
-        $newIdentifier = (int)$connection->lastInsertId($tableName);
+        $newIdentifier = null;
+        if ($this->updateRecords && $newIdentifier = RecordUtility::getLocalUid($oldIdentifier, $tableName)) {
+            $connection->update($tableName, $properties, ['uid' => $newIdentifier]);
+            RecordUtility::update($oldIdentifier, $tableName);
+        }
+        if (!$newIdentifier) {
+            $connection->insert($tableName, $properties);
+            $newIdentifier = (int)$connection->lastInsertId($tableName);
+            RecordUtility::insert($newIdentifier, $oldIdentifier, $tableName);
+        }
+
         if ($oldIdentifier > 0) {
             $this->mappingService->setNew($newIdentifier, $oldIdentifier, $tableName);
         }
