@@ -74,6 +74,4 @@ class RecordUtility
         }
         return true;
     }
-
-
 }

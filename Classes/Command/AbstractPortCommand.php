@@ -25,6 +25,11 @@ abstract class AbstractPortCommand extends Command
         if (PathUtility::isAbsolutePath($configurationPath) === false) {
             $path = GeneralUtility::getFileAbsFileName($configurationPath);
         }
+
+        if (is_file($path) === false) {
+            $path = getcwd() . '/' . ltrim($configurationPath, '/');
+        }
+
         if (is_file($path) === false) {
             throw new ConfigurationException('File not found on ' . $path, 1569837808);
         }
