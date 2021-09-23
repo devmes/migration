@@ -9,6 +9,7 @@ use In2code\Migration\Signal\SignalTrait;
 use In2code\Migration\Utility\DatabaseUtility;
 use In2code\Migration\Utility\FileUtility;
 use In2code\Migration\Utility\ObjectUtility;
+use In2code\Migration\Utility\RecordUtility;
 use In2code\Migration\Utility\TcaUtility;
 use TYPO3\CMS\Core\Database\Query\Restriction\HiddenRestriction;
 use TYPO3\CMS\Core\Database\QueryGenerator;
@@ -130,6 +131,7 @@ class Export
     public function export(): string
     {
         $this->buildJson();
+        $this->syncUpdateTable();
         $this->signalDispatch(__CLASS__, 'beforeExport', [$this]);
         return $this->getJson();
     }
@@ -166,6 +168,20 @@ class Export
         $this->extendWithFiles();
         $this->extendWithFilesFromLinks();
         $this->extendWithMmRelations();
+    }
+
+    /**
+     * Create update Records
+     */
+    protected function syncUpdateTable(): void
+    {
+        foreach ($this->jsonArray['records'] as $table => $records) {
+            foreach ($records as $record) {
+                if (!RecordUtility::getLocalUid($record['uid'], $table)) {
+                    RecordUtility::insert($record['uid'], $record['uid'], $table);
+                }
+            }
+        }
     }
 
     /**
