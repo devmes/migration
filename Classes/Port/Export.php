@@ -14,6 +14,7 @@ use In2code\Migration\Utility\TcaUtility;
 use TYPO3\CMS\Core\Database\Query\Restriction\HiddenRestriction;
 use TYPO3\CMS\Core\Database\QueryGenerator;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Extbase\Persistence\QueryInterface;
 use TYPO3\CMS\Extbase\SignalSlot\Exception\InvalidSlotException;
 use TYPO3\CMS\Extbase\SignalSlot\Exception\InvalidSlotReturnException;
 
@@ -359,10 +360,16 @@ class Export
             $queryBuilder->getRestrictions()->removeByType(HiddenRestriction::class);
         }
 
-        return (array)$queryBuilder
+        $query = $queryBuilder
             ->select('*')
             ->from($tableName)
-            ->where('pid=' . $pageIdentifier . $addWhere)
+            ->where('pid=' . $pageIdentifier . $addWhere);
+
+        if ($languageField = $GLOBALS['TCA'][$tableName]['ctrl']['transOrigPointerField']) {
+            $query->orderBy($languageField, QueryInterface::ORDER_ASCENDING);
+        }
+        
+        return (array)$query
             ->execute()
             ->fetchAll();
     }
