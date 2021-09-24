@@ -383,7 +383,9 @@ class Import
 
         $newIdentifier = $this->updateRecords ? RecordUtility::getLocalUid($oldIdentifier, $tableName) : null;
 
-        if (in_array($oldIdentifier, $this->configuration['forceUid'][$tableName])) {
+        if (is_array($this->configuration['forceUid'][$tableName]) &&
+            in_array($oldIdentifier, $this->configuration['forceUid'][$tableName])
+        ) {
             $properties['uid'] = $oldIdentifier;
             if (RecordUtility::recordExists($oldIdentifier, $tableName)) {
                 $newIdentifier = $oldIdentifier;
