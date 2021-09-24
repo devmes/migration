@@ -380,8 +380,17 @@ class Import
         $oldIdentifier = (int)$properties['uid'];
         $connection = DatabaseUtility::getConnectionForTable($tableName);
         $properties = $this->prepareProperties($properties, $tableName);
-        $newIdentifier = null;
-        if ($this->updateRecords && $newIdentifier = RecordUtility::getLocalUid($oldIdentifier, $tableName)) {
+
+        $newIdentifier = $this->updateRecords ? RecordUtility::getLocalUid($oldIdentifier, $tableName) : null;
+
+        if (in_array($oldIdentifier, $this->configuration['forceUid'][$tableName])) {
+            $properties['uid'] = $oldIdentifier;
+            if (RecordUtility::recordExists($oldIdentifier, $tableName)) {
+                $newIdentifier = $oldIdentifier;
+            }
+        }
+
+        if ($newIdentifier) {
             $connection->update($tableName, $properties, ['uid' => $newIdentifier]);
             RecordUtility::update($oldIdentifier, $tableName);
         }

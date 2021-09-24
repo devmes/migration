@@ -74,4 +74,21 @@ class RecordUtility
         }
         return true;
     }
+
+    /**
+     * @param int $origUid
+     * @param string $tableName
+     * @return bool
+     */
+    public static function recordExists(int $origUid, string $tableName): bool
+    {
+        $queryBuilder = DatabaseUtility::getQueryBuilderForTable($tableName);
+        $queryBuilder->getRestrictions()->removeAll();
+        $row = $queryBuilder->select('uid')
+            ->from($tableName)
+            ->where($queryBuilder->expr()->eq('uid', $origUid))
+            ->execute()->fetch();
+
+        return $row['uid'] ? true: false;
+    }
 }

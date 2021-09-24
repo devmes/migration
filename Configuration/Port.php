@@ -399,5 +399,18 @@ return [
     /**
      * Include deleted Records, important for data sync
      */
-    'includeDeletedRecords' => false
+    'includeDeletedRecords' => false,
+
+    /**
+     * Keep this uids
+     * 
+     * SAMPLE:
+     * 'forceUid' => [
+     *    'pages'=> [
+     *        1234
+     *    ]
+     * ]
+     */
+    'forceUid' => [
+    ]
 ];
