@@ -352,7 +352,13 @@ class Export
     protected function getRecordsFromPageAndTable(int $pageIdentifier, string $tableName, string $addWhere = ''): array
     {
         $queryBuilder = DatabaseUtility::getQueryBuilderForTable($tableName);
-        $queryBuilder->getRestrictions()->removeByType(HiddenRestriction::class);
+
+        if ($this->configuration['includeDeletedRecords'] === true) {
+            $queryBuilder->getRestrictions()->removeAll();
+        } else {
+            $queryBuilder->getRestrictions()->removeByType(HiddenRestriction::class);
+        }
+
         return (array)$queryBuilder
             ->select('*')
             ->from($tableName)

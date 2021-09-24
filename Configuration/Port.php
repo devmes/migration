@@ -394,5 +394,10 @@ return [
      * to get the resource from original URI.
      * This will also help you if you run into a memory limit issue while exporting.
      */
-    'addFilesToJson' => false
+    'addFilesToJson' => false,
+
+    /**
+     * Include deleted Records, important for data sync
+     */
+    'includeDeletedRecords' => false
 ];
