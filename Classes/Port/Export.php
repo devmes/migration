@@ -178,8 +178,12 @@ class Export
     {
         foreach ($this->jsonArray['records'] as $table => $records) {
             foreach ($records as $record) {
-                if (!RecordUtility::getLocalUid($record['uid'], $table)) {
+                $origUid = RecordUtility::getOrigUid($record['uid'], $table);
+                if (!$origUid) {
                     RecordUtility::insert($record['uid'], $record['uid'], $table);
+                }
+                if ($record['uid'] != $origUid) {
+                    $this->jsonArray['updateRecords'][$table][$record['uid']] = $origUid;
                 }
             }
         }
@@ -368,7 +372,7 @@ class Export
         if ($languageField = $GLOBALS['TCA'][$tableName]['ctrl']['transOrigPointerField']) {
             $query->orderBy($languageField, QueryInterface::ORDER_ASCENDING);
         }
-        
+
         return (array)$query
             ->execute()
             ->fetchAll();

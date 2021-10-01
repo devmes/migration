@@ -381,25 +381,25 @@ class Import
         $connection = DatabaseUtility::getConnectionForTable($tableName);
         $properties = $this->prepareProperties($properties, $tableName);
 
-        $newIdentifier = $this->updateRecords ? RecordUtility::getLocalUid($oldIdentifier, $tableName) : null;
+        $origIdentifier =  $this->jsonArray['updateRecords'][$tableName][$oldIdentifier] ?: $oldIdentifier;
+        $newIdentifier = $this->updateRecords ? RecordUtility::getLocalUid($origIdentifier, $tableName) : null;
 
         if (is_array($this->configuration['forceUid'][$tableName]) &&
-            in_array($oldIdentifier, $this->configuration['forceUid'][$tableName])
+            in_array($origIdentifier, $this->configuration['forceUid'][$tableName])
         ) {
-            $properties['uid'] = $oldIdentifier;
-            if (RecordUtility::recordExists($oldIdentifier, $tableName)) {
-                $newIdentifier = $oldIdentifier;
+            $properties['uid'] = $origIdentifier;
+            if (RecordUtility::recordExists($origIdentifier, $tableName)) {
+                $newIdentifier = $origIdentifier;
             }
         }
 
         if ($newIdentifier) {
             $connection->update($tableName, $properties, ['uid' => $newIdentifier]);
-            RecordUtility::update($oldIdentifier, $tableName);
-        }
-        if (!$newIdentifier) {
+            RecordUtility::update($origIdentifier, $tableName);
+        } else {
             $connection->insert($tableName, $properties);
             $newIdentifier = (int)$connection->lastInsertId($tableName);
-            RecordUtility::insert($newIdentifier, $oldIdentifier, $tableName);
+            RecordUtility::insert($newIdentifier, $origIdentifier, $tableName);
         }
 
         if ($oldIdentifier > 0) {

@@ -31,6 +31,26 @@ class RecordUtility
 
         return $row['local_uid'] ?: null;
     }
+    /**
+     * @param int $localUid
+     * @param string $tableName
+     * @return int|null
+     */
+    public static function getOrigUid(int $localUid, string $tableName):? int
+    {
+        $queryBuilder = DatabaseUtility::getQueryBuilderForTable(self::$importTable);
+
+        $row = $queryBuilder->select('*')
+            ->from(self::$importTable)
+            ->where(
+                $queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('tablename', $queryBuilder->createNamedParameter($tableName)),
+                    $queryBuilder->expr()->eq('local_uid', $localUid)
+                )
+            )->execute()->fetch();
+
+        return $row['orig_uid'] ?: null;
+    }
 
     /**
      * @param int $localUid
